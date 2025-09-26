@@ -46,12 +46,20 @@ const state = {
   currentSpeed: config.baseSpeed,
   health: config.healthMax,
   inBigShort: false,
+  winAchieved: false,
   spawnTimers: {
     collectible: 0.9,
     hazard: 2.4,
     sinkhole: 8
   }
 };
+
+
+function getDifficultyScale() {
+  const distance = state.distance || 0;
+  const scale = 1 + distance / 6000;
+  return Math.min(scale, 2.6);
+}
 
 const parallaxLayers = [
   { color: '#12265f', baseHeight: 260, amplitude: 45, speedFactor: 0.12, offset: 0 },
@@ -464,34 +472,69 @@ class PlatformSegment {
     ctx.save();
     ctx.translate(this.x, this.y);
 
-    const palettes = [
-      { top: 'rgba(0, 240, 255, 0.85)', bottom: 'rgba(8, 28, 52, 0.95)', accent: 'rgba(0, 255, 214, 0.6)', support: 'rgba(0, 180, 255, 0.22)' },
-      { top: 'rgba(255, 214, 126, 0.86)', bottom: 'rgba(44, 22, 78, 0.92)', accent: 'rgba(255, 236, 190, 0.55)', support: 'rgba(255, 198, 120, 0.28)' },
-      { top: 'rgba(255, 143, 239, 0.85)', bottom: 'rgba(60, 20, 88, 0.92)', accent: 'rgba(255, 208, 255, 0.58)', support: 'rgba(255, 138, 255, 0.28)' }
-    ];
-    const swatch = palettes[Math.min(palettes.length - 1, this.levelIndex)];
-
-    const gradient = ctx.createLinearGradient(0, -platformThickness, 0, 6);
-    gradient.addColorStop(0, swatch.top);
-    gradient.addColorStop(1, swatch.bottom);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, -platformThickness, this.width, platformThickness);
-
-    ctx.fillStyle = swatch.accent;
-    ctx.fillRect(0, -platformThickness, this.width, 2);
-
     if (this.levelIndex === 0) {
-      ctx.fillStyle = 'rgba(0, 255, 214, 0.14)';
-      for (let i = -10; i < this.width; i += 26) {
-        ctx.fillRect(i, -platformThickness, 10, platformThickness);
-      }
-    } else {
-      ctx.fillStyle = swatch.support;
-      ctx.fillRect(0, 0, this.width, 6);
-      ctx.fillStyle = 'rgba(2, 4, 12, 0.45)';
-      ctx.fillRect(0, 6, this.width, 3);
+      const grassHeight = 18;
+      const soilDepth = Math.min(96, config.height - this.y);
 
-      ctx.strokeStyle = swatch.accent;
+      const soilGradient = ctx.createLinearGradient(0, 0, 0, soilDepth);
+      soilGradient.addColorStop(0, '#3b1f05');
+      soilGradient.addColorStop(0.45, '#2d1603');
+      soilGradient.addColorStop(1, '#1b1208');
+      ctx.fillStyle = soilGradient;
+      ctx.fillRect(0, 0, this.width, soilDepth);
+
+      ctx.fillStyle = 'rgba(10, 6, 3, 0.4)';
+      for (let i = 8; i < this.width - 12; i += 26) {
+        const noise = Math.sin((this.x + i) * 0.17);
+        const nuance = Math.cos((this.x + i) * 0.11);
+        const pebbleWidth = 10 + (noise + 1) * 6;
+        const pebbleHeight = 6 + (nuance + 1) * 4;
+        const y = 18 + (Math.sin((this.x + i) * 0.09) + 1) * (soilDepth - 36) * 0.5;
+        ctx.beginPath();
+        ctx.ellipse(i, y, pebbleWidth * 0.5, pebbleHeight * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const grassGradient = ctx.createLinearGradient(0, -14, 0, grassHeight);
+      grassGradient.addColorStop(0, '#3eff94');
+      grassGradient.addColorStop(0.5, '#16d873');
+      grassGradient.addColorStop(1, '#066539');
+      ctx.fillStyle = grassGradient;
+      ctx.fillRect(-3, -14, this.width + 6, grassHeight);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      for (let i = -2; i < this.width + 4; i += 18) {
+        const bladeNoise = Math.sin((this.x + i) * 0.21);
+        const bladeHeight = 10 + (bladeNoise + 1) * 4;
+        ctx.beginPath();
+        ctx.moveTo(i, -2);
+        ctx.lineTo(i + 3, -bladeHeight);
+        ctx.lineTo(i + 6, -2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.fillStyle = 'rgba(3, 5, 12, 0.65)';
+      ctx.fillRect(-5, 0, 5, soilDepth);
+      ctx.fillRect(this.width, 0, 5, soilDepth);
+    } else {
+      const palettes = [
+        { top: 'rgba(0, 240, 255, 0.85)', bottom: 'rgba(8, 28, 52, 0.95)', accent: 'rgba(0, 255, 214, 0.55)', support: 'rgba(0, 180, 255, 0.28)' },
+        { top: 'rgba(255, 214, 126, 0.86)', bottom: 'rgba(44, 22, 78, 0.92)', accent: 'rgba(255, 236, 190, 0.5)', support: 'rgba(255, 198, 120, 0.28)' },
+        { top: 'rgba(255, 143, 239, 0.85)', bottom: 'rgba(60, 20, 88, 0.92)', accent: 'rgba(255, 208, 255, 0.52)', support: 'rgba(255, 138, 255, 0.28)' }
+      ];
+      const swatch = palettes[Math.min(palettes.length - 1, this.levelIndex - 1)];
+
+      const gradient = ctx.createLinearGradient(0, -platformThickness, 0, 8);
+      gradient.addColorStop(0, swatch.top);
+      gradient.addColorStop(1, swatch.bottom);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, -platformThickness, this.width, platformThickness + 6);
+
+      ctx.fillStyle = swatch.accent;
+      ctx.fillRect(0, -platformThickness, this.width, 2);
+
+      ctx.strokeStyle = swatch.support;
       ctx.lineWidth = 2;
       ctx.setLineDash([8, 12]);
       ctx.beginPath();
@@ -500,12 +543,12 @@ class PlatformSegment {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      const drop = Math.min(48, Math.max(18, platformLevels[0] - this.y));
-      ctx.strokeStyle = swatch.support;
+      const drop = Math.min(52, Math.max(18, platformLevels[0] - this.y));
+      ctx.strokeStyle = 'rgba(6, 12, 26, 0.6)';
       ctx.lineWidth = 2;
-      for (let i = 12; i < this.width; i += 34) {
+      for (let i = 16; i < this.width; i += 40) {
         ctx.beginPath();
-        ctx.moveTo(i, 0);
+        ctx.moveTo(i, 6);
         ctx.lineTo(i, drop);
         ctx.stroke();
       }
@@ -558,12 +601,18 @@ function ensureLevelCoverage(level) {
     lastEnd = -config.width;
   }
   while (lastEnd < coverageLimit) {
+    const difficulty = getDifficultyScale();
+    const wideGapChance = Math.min(0.18 + (difficulty - 1) * 0.22, 0.62);
+    const longGapMax = 200 + (difficulty - 1) * 70;
+    const standardGapMax = 90 + (difficulty - 1) * 28;
+    const verticalGap = Math.max(150, 250 - (difficulty - 1) * 30);
+
     const gap = level === 0
-      ? (Math.random() < 0.18 ? randomBetween(130, 200) : randomBetween(40, 90))
-      : randomBetween(150, 250);
+      ? (Math.random() < wideGapChance ? randomBetween(130, longGapMax) : randomBetween(40, standardGapMax))
+      : randomBetween(140, verticalGap);
     lastEnd += gap;
     const width = level === 0
-      ? randomBetween(config.platformMinWidth, config.platformMaxWidth)
+      ? randomBetween(config.platformMinWidth, config.platformMaxWidth + (difficulty - 1) * 30)
       : randomBetween(130, 240);
     platforms.push(new PlatformSegment(lastEnd, width, level));
     lastEnd += width;
@@ -645,11 +694,13 @@ function spawnSinkhole() {
   if (!upcoming) {
     return;
   }
-  const holeWidth = randomBetween(120, 180);
+  const difficulty = getDifficultyScale();
+  const maxWidthBoost = Math.min(120, (difficulty - 1) * 60);
+  const holeWidth = randomBetween(120, 180 + maxWidthBoost);
   if (upcoming.width < holeWidth + 120) {
     return;
   }
-  const holeStart = upcoming.x + Math.max(80, upcoming.width - holeWidth - 60);
+  const holeStart = upcoming.x + Math.max(70, upcoming.width - holeWidth - 50);
   const holeEnd = holeStart + holeWidth;
   const leftWidth = Math.max(70, holeStart - upcoming.x);
   upcoming.width = leftWidth;
@@ -676,10 +727,15 @@ function spawnSinkhole() {
     }
   }
 
-  const bridgeLevel = Math.random() < 0.6 ? 1 : 2;
-  const bridgeWidth = holeWidth + randomBetween(60, 140);
+  const bridgeLevel = difficulty > 1.6 ? 2 : Math.random() < 0.6 ? 1 : 2;
+  const bridgeWidth = holeWidth + randomBetween(60, 140 + maxWidthBoost * 0.5);
   const bridgeStart = holeStart - randomBetween(20, 50);
   platforms.push(new PlatformSegment(bridgeStart, bridgeWidth, bridgeLevel));
+
+  if (difficulty > 1.4 && Math.random() < 0.45) {
+    const hazardX = holeStart + holeWidth * 0.5;
+    hazards.push(new Hazard(hazardX, platformLevels[Math.min(2, bridgeLevel)], bridgeLevel === 2 ? 'air' : 'short'));
+  }
 }
 
 function reinforceGroundUnderPlayer() {
@@ -703,6 +759,7 @@ function spawnCollectible() {
 }
 
 function spawnHazard() {
+  const difficulty = getDifficultyScale();
   const x = config.width + 160 + Math.random() * 80;
   let type = 'subprime';
   const roll = Math.random();
@@ -715,6 +772,15 @@ function spawnHazard() {
   const platform = choosePlatformSegment(x, preference) || choosePlatformSegment(x, 'low');
   const platformTop = platform ? platform.top : platformLevels[Math.min(platformLevels.length - 1, type === 'air' ? 1 : 0)];
   hazards.push(new Hazard(x, platformTop, type));
+
+  if (difficulty > 1.7 && Math.random() < 0.32) {
+    const offset = randomBetween(120, 220);
+    const secondaryType = type === 'air' && Math.random() < 0.5 ? 'air' : 'short';
+    const secondaryPref = secondaryType === 'air' ? 'mid' : 'low';
+    const secondaryPlatform = choosePlatformSegment(x + offset, secondaryPref) || choosePlatformSegment(x + offset, 'low');
+    const secondaryTop = secondaryPlatform ? secondaryPlatform.top : platformTop;
+    hazards.push(new Hazard(x + offset, secondaryTop, secondaryType));
+  }
 }
 
 function resetGame() {
@@ -727,6 +793,7 @@ function resetGame() {
   state.gameOver = false;
   state.crashTriggered = false;
   state.inBigShort = false;
+  state.winAchieved = false;
   state.health = config.healthMax;
   collectibles.length = 0;
   hazards.length = 0;
@@ -820,6 +887,9 @@ function handleHazardCollision(hazard) {
   screenShake = Math.min(12, screenShake + 8);
   crashFlash = 0.7;
   updateHud();
+  if (state.winAchieved) {
+    return;
+  }
   if (state.health <= 0) {
     triggerCrash('confidence');
     return;
@@ -830,7 +900,7 @@ function handleHazardCollision(hazard) {
 }
 
 function triggerBigShortFall() {
-  if (state.inBigShort || state.crashTriggered) {
+  if (state.inBigShort || state.crashTriggered || state.winAchieved) {
     return;
   }
   state.inBigShort = true;
@@ -854,8 +924,28 @@ function triggerBigShortFall() {
   }
 }
 
+function triggerWin() {
+  if (state.winAchieved) {
+    return;
+  }
+  state.running = false;
+  state.gameOver = true;
+  state.winAchieved = true;
+  state.crashTriggered = false;
+  state.inBigShort = false;
+  bigShortOverlay.classList.remove('visible');
+  const distance = Math.floor(state.distance);
+  setTimeout(() => {
+    showMessage(
+      'Soft Landing',
+      `You navigated ${distance} market meters and unwound the bubble without a crash.<br/>Wall Street crowns you the master of risk.`,
+      'Run Another Scenario'
+    );
+  }, 350);
+}
+
 function triggerCrash(reason = 'liquidity') {
-  if (state.crashTriggered) {
+  if (state.crashTriggered || state.winAchieved) {
     return;
   }
   state.running = false;
@@ -892,15 +982,18 @@ function updateGame(delta) {
 
   if (state.spawnTimers.collectible <= 0) {
     spawnCollectible();
-    state.spawnTimers.collectible = 0.45 + Math.random() * 0.6;
+    const difficulty = getDifficultyScale();
+    state.spawnTimers.collectible = (0.45 + Math.random() * 0.6) / Math.min(1.4, difficulty);
   }
   if (state.spawnTimers.hazard <= 0) {
     spawnHazard();
-    state.spawnTimers.hazard = 1.4 + Math.random() * 1.2;
+    const difficulty = getDifficultyScale();
+    state.spawnTimers.hazard = (1.4 + Math.random() * 1.2) / difficulty;
   }
   if (state.spawnTimers.sinkhole <= 0) {
     spawnSinkhole();
-    state.spawnTimers.sinkhole = 8 + Math.random() * 5;
+    const difficulty = getDifficultyScale();
+    state.spawnTimers.sinkhole = (8 + Math.random() * 5) / Math.max(1, difficulty * 0.8);
   }
 
   const targetSpeed = config.baseSpeed + Math.min(state.distance * 1.6, config.maxSpeed - config.baseSpeed);
@@ -958,6 +1051,9 @@ function updateGame(delta) {
   }
 
   state.distance += (state.currentSpeed * delta) / 4.5;
+  if (!state.winAchieved && state.distance >= 20000) {
+    triggerWin();
+  }
   updateHud();
 }
 
@@ -988,24 +1084,15 @@ function drawBackground(delta) {
     ctx.restore();
   });
 
-  // Ground
+  // Subterranean void
   ctx.save();
   const groundY = config.height - config.groundHeight;
-  const groundGradient = ctx.createLinearGradient(0, groundY, 0, config.height);
-  groundGradient.addColorStop(0, '#0d6d80');
-  groundGradient.addColorStop(1, '#072337');
-  ctx.fillStyle = groundGradient;
-  ctx.fillRect(0, groundY, config.width, config.groundHeight);
-
-  ctx.strokeStyle = 'rgba(0, 255, 255, 0.35)';
-  ctx.lineWidth = 2;
-  const stripeSpacing = 120;
-  for (let x = (performance.now() / 6) % stripeSpacing; x < config.width; x += stripeSpacing) {
-    ctx.beginPath();
-    ctx.moveTo(x, groundY + 4);
-    ctx.lineTo(x - 60, config.height - 20);
-    ctx.stroke();
-  }
+  const voidGradient = ctx.createLinearGradient(0, groundY, 0, config.height + 80);
+  voidGradient.addColorStop(0, 'rgba(8, 12, 28, 0.85)');
+  voidGradient.addColorStop(0.5, 'rgba(4, 6, 16, 0.95)');
+  voidGradient.addColorStop(1, 'rgba(1, 2, 8, 1)');
+  ctx.fillStyle = voidGradient;
+  ctx.fillRect(0, groundY, config.width, config.groundHeight + 100);
   ctx.restore();
 }
 

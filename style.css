@@ -30,12 +30,13 @@ html, body {
 body {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 2rem 1.5rem 3rem;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
 }
 
 .page-shell {
-  width: min(1200px, 100%);
+  width: min(1500px, 100%);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -67,9 +68,9 @@ body {
 
 .game-area {
   display: grid;
-  grid-template-columns: 2fr min(360px, 32vw);
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 28vw);
+  gap: 1.75rem;
+  align-items: stretch;
 }
 
 .canvas-wrap {
@@ -80,12 +81,14 @@ body {
   background: radial-gradient(circle at 20% 20%, rgba(0, 160, 255, 0.22), transparent 60%),
     linear-gradient(180deg, rgba(12, 20, 52, 0.9), rgba(6, 8, 22, 0.96));
   box-shadow: 0 25px 45px rgba(0, 0, 0, 0.45);
+  aspect-ratio: 16 / 9;
 }
 
 canvas {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 85vh;
 }
 
 .hud {

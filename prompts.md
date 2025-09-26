@@ -12,3 +12,5 @@
    *Response:* Softened hazard penalties and spawn rates, refreshed platform visuals to separate floor from elevated tiers, and drafted GitHub Pages deployment plus git push guidance.
 5. **2025-09-16 10:45** – "The initial load has the start button not visible, please make sure this renders correctly"  
    *Response:* Added padding and scrolling to the intro overlay card so the start button always remains within view on first render.
+6. **2025-09-16 10:55** – "I would like to make a couple of tweaks... survive the crash."  
+   *Response:* Expanded the playfield to 1280×720, refreshed layout styling, rebuilt the ground with grassy earth and visible pit gaps, scaled hazards and holes with distance-based difficulty, and added a 20,000m victory condition.
