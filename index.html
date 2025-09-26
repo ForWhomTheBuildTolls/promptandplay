@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sonic vs. The CDO Crash</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="title-bar">
+      <h1>Sonic vs. The CDO Crash</h1>
+      <p class="subtitle">Collect collateralized debt obligations to outrun 2008.</p>
+    </header>
+
+    <main class="game-area">
+      <section class="canvas-wrap">
+        <canvas id="gameCanvas" width="960" height="540" aria-label="Sonic collecting CDOs"></canvas>
+        <div class="hud" aria-live="polite">
+          <div class="hud-pane">
+            <span class="label">CDOs</span>
+            <span id="hudCdo" class="value">0</span>
+          </div>
+          <div class="hud-pane">
+            <span class="label">Distance</span>
+            <span id="hudScore" class="value">0 m</span>
+          </div>
+          <div class="hud-pane">
+            <span class="label">Risk Level</span>
+            <span id="hudRisk" class="value">Stable</span>
+          </div>
+          <div class="hud-pane">
+            <span class="label">Confidence</span>
+            <span id="hudHealth" class="value">100%</span>
+          </div>
+        </div>
+
+        <div id="bigShortOverlay" class="big-short-overlay">
+          <div class="big-short-card">
+            <h2>"There's a bubble!"</h2>
+            <p>The floor gives way, traders panic, and your confidence plunges.</p>
+            <button id="recoverButton" class="primary-btn">Get Back Up</button>
+          </div>
+        </div>
+
+        <div id="messagePanel" class="message-panel visible">
+          <div class="message-card">
+            <h2 id="messageTitle">Welcome to the Boom</h2>
+            <p id="messageBody">
+              Sonic is now a Wall Street quant sprinting across stacked trading floors. Vault between layers,
+              hoover up glowing CDOs, and stay above water. If you collide with toxic assets and your CDO stash hits
+              zero, the 2008 crash returns. Dive too deep and you might relive <em>The Big Short</em>.
+            </p>
+            <ul class="controls-list">
+              <li><span>Space / ↑</span> Jump / double hop to climb floors</li>
+              <li><span>Hold Space</span> Glide a bit farther</li>
+              <li><span>R</span> Restart after a crash</li>
+            </ul>
+            <button id="startButton" class="primary-btn">Start the Bull Run</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="lore-panel">
+        <h2>Market Briefing</h2>
+        <p>
+          Maintain your collateralized debt obligations to buy time before the housing bubble bursts.
+          Every toxic mortgage-backed hazard you hit sheds CDOs from your balance sheet. When the balance
+          reaches zero, the market freezes and history repeats itself.
+        </p>
+        <p>
+          Collect more CDOs than you lose to keep the economy humming. Your distance measures how long the
+          bull run lasts before the meltdown.
+        </p>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <p>Crafted entirely with AI-generated code for the Prompt &amp; Play challenge.</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

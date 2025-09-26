@@ -1,0 +1,325 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  --bg-gradient: linear-gradient(135deg, #0a0f2e 0%, #141f4f 48%, #1f346f 100%);
+  --panel-bg: rgba(14, 19, 38, 0.8);
+  --accent: #00e0ff;
+  --accent-strong: #00ffc6;
+  --danger: #ff5678;
+  --success: #9cff00;
+  --text-main: #f7f8ff;
+  --text-secondary: #9ea7cc;
+  --glass-border: rgba(255, 255, 255, 0.18);
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg-gradient);
+  font-family: 'Chakra Petch', 'Segoe UI', Tahoma, sans-serif;
+  color: var(--text-main);
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.page-shell {
+  width: min(1200px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.title-bar {
+  background: var(--panel-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.title-bar h1 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+}
+
+.game-area {
+  display: grid;
+  grid-template-columns: 2fr min(360px, 32vw);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.canvas-wrap {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: radial-gradient(circle at 20% 20%, rgba(0, 160, 255, 0.22), transparent 60%),
+    linear-gradient(180deg, rgba(12, 20, 52, 0.9), rgba(6, 8, 22, 0.96));
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.45);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hud {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(10, 12, 32, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(8px);
+}
+
+.hud-pane {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 96px;
+}
+
+.hud-pane .label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-secondary);
+}
+
+.hud-pane .value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.message-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.75rem 1.5rem;
+  background: rgba(4, 6, 18, 0.68);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.01);
+  transition: opacity 260ms ease, transform 260ms ease;
+  z-index: 3;
+}
+
+.message-panel.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.big-short-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 2, 20, 0.82);
+  backdrop-filter: blur(12px);
+  animation: pulseVis 1.4s ease infinite alternate;
+  z-index: 4;
+}
+
+.big-short-overlay.visible {
+  display: flex;
+}
+
+.big-short-card {
+  width: min(420px, 90%);
+  padding: 2.4rem 2.1rem;
+  border-radius: 22px;
+  background: rgba(14, 20, 42, 0.92);
+  border: 1px solid rgba(255, 230, 102, 0.4);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.big-short-card h2 {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffe066;
+  font-size: 1.4rem;
+}
+
+.big-short-card p {
+  margin: 1rem 0 1.6rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+@keyframes pulseVis {
+  from {
+    opacity: 0.88;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.message-card {
+  width: min(420px, 90%);
+  max-height: min(520px, 92vh);
+  background: rgba(10, 16, 36, 0.88);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  border-radius: 20px;
+  padding: 1.85rem 1.75rem;
+  text-align: left;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: auto;
+}
+
+.message-card h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.message-card p {
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0.75rem 0 1.25rem;
+}
+
+.message-card .primary-btn {
+  margin-top: auto;
+}
+
+.controls-list {
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.controls-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+}
+
+.controls-list span:first-child {
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #041222;
+  box-shadow: 0 12px 25px rgba(0, 255, 214, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 8px 18px rgba(0, 255, 214, 0.25);
+}
+
+.lore-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 1.5rem 1.75rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.lore-panel h2 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1040px) {
+  body {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .game-area {
+    grid-template-columns: 1fr;
+  }
+
+  .lore-panel {
+    order: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .hud {
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 140px;
+  }
+
+  .controls-list li {
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+  }
+}
