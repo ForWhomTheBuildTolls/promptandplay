@@ -837,9 +837,23 @@ function updateHud() {
 }
 
 function updateMobileControlState() {
-  if (!isMobile || !mobileControls) {
+  if (!mobileControls) {
     return;
   }
+
+  const shouldShow = isMobile && (state.running || state.crashTriggered || state.winAchieved);
+  if (shouldShow) {
+    mobileControls.classList.add('is-visible');
+    mobileControls.setAttribute('aria-hidden', 'false');
+  } else {
+    mobileControls.classList.remove('is-visible');
+    mobileControls.setAttribute('aria-hidden', 'true');
+  }
+
+  if (!isMobile) {
+    return;
+  }
+
   const canRestart = state.crashTriggered || state.winAchieved;
   if (mobileRestartButton) {
     if (canRestart) {
@@ -1263,7 +1277,7 @@ function initializeMobileControls() {
   }
 
   document.body.classList.add('is-mobile');
-  mobileControls.setAttribute('aria-hidden', 'false');
+  mobileControls.setAttribute('aria-hidden', 'true');
 
   const pressEvent = window.PointerEvent ? 'pointerdown' : 'touchstart';
   const releaseEvents = window.PointerEvent
