@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sonic vs. The CDO Crash</title>
+  <title>Sonic vs. The 2008 Crash</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="page-shell">
     <header class="title-bar">
-      <h1>Sonic vs. The CDO Crash</h1>
+      <h1>Sonic vs. The 2008 Crash</h1>
       <p class="subtitle">Collect collateralized debt obligations to outrun 2008.</p>
     </header>
 
@@ -53,26 +53,46 @@
               meters and the bubble deflates without a crash.
             </p>
             <ul class="controls-list">
-              <li><span>Space / ↑</span> Jump / double hop to climb floors</li>
-              <li><span>Hold Space</span> Glide a bit farther</li>
-              <li><span>R</span> Restart after a crash</li>
+              <li><span>Space / Arrow Up</span> Jump or double hop to climb floors</li>
+              <li><span>Hold Space</span> Glide a little farther when airborne</li>
+              <li><span>R</span> Restart the scenario after a crash</li>
             </ul>
+            <p class="message-tip">Controls stay visible in the Market Briefing panel, with touch buttons on mobile.</p>
             <button id="startButton" class="primary-btn">Start the Bull Run</button>
           </div>
+        </div>
+
+        <div id="mobileControls" class="mobile-controls" aria-hidden="true">
+          <button type="button" id="mobileJump" class="mobile-btn">Jump</button>
+          <button type="button" id="mobileGlide" class="mobile-btn">Glide</button>
+          <button type="button" id="mobileRestart" class="mobile-btn" disabled>Restart</button>
         </div>
       </section>
 
       <aside class="lore-panel">
-        <h2>Market Briefing</h2>
-        <p>
-          Maintain your collateralized debt obligations to buy time before the housing bubble bursts.
-          Every toxic mortgage-backed hazard you hit sheds CDOs from your balance sheet. When the balance
-          reaches zero, the market freezes and history repeats itself.
-        </p>
-        <p>
-          Collect more CDOs than you lose to keep the economy humming. Your distance measures how long the
-          bull run lasts before the meltdown&mdash;hit 20,000 to bail out the world.
-        </p>
+        <div class="lore-content">
+          <h2>Market Briefing</h2>
+          <p>
+            Maintain your collateralized debt obligations to buy time before the housing bubble bursts.
+            Every toxic mortgage-backed hazard you hit sheds CDOs from your balance sheet. When the balance
+            reaches zero, the market freezes and history repeats itself.
+          </p>
+          <p>
+            Collect more CDOs than you lose to keep the economy humming. Your distance measures how long the
+            bull run lasts before the meltdown&mdash;hit 20,000 to bail out the world.
+          </p>
+        </div>
+        <section class="control-reference" aria-labelledby="controlHeading">
+          <h3 id="controlHeading">How to Play</h3>
+          <p class="control-reference__note">Keyboard and mobile controls stay pinned here so you can glance mid-run.</p>
+          <ul class="controls-list controls-list--panel">
+            <li><span>Space / Arrow Up</span> Jump or double hop to climb floors</li>
+            <li><span>Hold Space</span> Glide a little farther when airborne</li>
+            <li><span>R</span> Restart the scenario after a crash</li>
+            <li><span>Tap Jump</span> Mobile button for leaps</li>
+            <li><span>Hold Glide</span> Mobile button to extend airtime</li>
+          </ul>
+        </section>
       </aside>
     </main>
 

@@ -12,7 +12,10 @@ const messageTitle = document.getElementById('messageTitle');
 const messageBody = document.getElementById('messageBody');
 const bigShortOverlay = document.getElementById('bigShortOverlay');
 const recoverButton = document.getElementById('recoverButton');
-
+const mobileControls = document.getElementById('mobileControls');
+const mobileJumpButton = document.getElementById('mobileJump');
+const mobileGlideButton = document.getElementById('mobileGlide');
+const mobileRestartButton = document.getElementById('mobileRestart');
 const config = {
   width: canvas.width,
   height: canvas.height,
@@ -24,6 +27,8 @@ const config = {
   jumpHoldBoost: -1800,
   jumpHoldDuration: 0.18,
   maxFallSpeed: 1500,
+  confidenceDecayBase: 0.65,
+  confidenceDecayRamp: 0.45,
   collectibleValue: 3,
   hazardPenalty: 5,
   hazardHealthPenalty: 8,
@@ -53,6 +58,14 @@ const state = {
     sinkhole: 8
   }
 };
+
+const isMobile = (() => {
+  const coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+  const ua = (navigator.userAgent || '').toLowerCase();
+  return coarse || /android|iphone|ipad|ipod|iemobile|windows phone/.test(ua);
+})();
+
+let mobileGlideActive = false;
 
 
 function getDifficultyScale() {
@@ -795,6 +808,7 @@ function resetGame() {
   state.inBigShort = false;
   state.winAchieved = false;
   state.health = config.healthMax;
+  mobileGlideActive = false;
   collectibles.length = 0;
   hazards.length = 0;
   floatingTexts.length = 0;
@@ -808,6 +822,7 @@ function resetGame() {
 }
 
 function updateHud() {
+
   hudCdo.textContent = state.cdoBank.toString();
   hudScore.textContent = `${Math.max(0, Math.floor(state.distance))} m`;
   hudHealth.textContent = `${Math.max(0, Math.round(state.health))}%`;
@@ -817,6 +832,22 @@ function updateHud() {
   hudRisk.style.color = risk.color;
   hudCdo.style.color = risk.color;
   hudHealth.style.color = getHealthColor();
+
+  updateMobileControlState();
+}
+
+function updateMobileControlState() {
+  if (!isMobile || !mobileControls) {
+    return;
+  }
+  const canRestart = state.crashTriggered || state.winAchieved;
+  if (mobileRestartButton) {
+    if (canRestart) {
+      mobileRestartButton.removeAttribute('disabled');
+    } else {
+      mobileRestartButton.setAttribute('disabled', 'disabled');
+    }
+  }
 }
 
 function getRiskLevel() {
@@ -913,7 +944,7 @@ function triggerBigShortFall() {
   player.prevBottom = player.y + player.height;
   screenShake = 16;
   crashFlash = 0.9;
-  addFloatingText("“There's a bubble!”", player.x + player.width * 0.5, platformLevels[0] - 60, '#ffe066');
+  addFloatingText("There's a bubble!", player.x + player.width * 0.5, platformLevels[0] - 60, '#ffe066');
   updateHud();
   if (state.health <= 0) {
     triggerCrash('confidence');
@@ -933,6 +964,8 @@ function triggerWin() {
   state.winAchieved = true;
   state.crashTriggered = false;
   state.inBigShort = false;
+  mobileGlideActive = false;
+  updateMobileControlState();
   bigShortOverlay.classList.remove('visible');
   const distance = Math.floor(state.distance);
   setTimeout(() => {
@@ -952,6 +985,8 @@ function triggerCrash(reason = 'liquidity') {
   state.gameOver = true;
   state.crashTriggered = true;
   state.inBigShort = false;
+  mobileGlideActive = false;
+  updateMobileControlState();
   bigShortOverlay.classList.remove('visible');
   const distance = Math.floor(state.distance);
   let title = '2008 Redux';
@@ -964,7 +999,7 @@ function triggerCrash(reason = 'liquidity') {
     button = 'Rebuild Trust';
   } else if (reason === 'bubble') {
     title = 'The Bubble Bursts';
-    body = `“There's a bubble!” echoes across the trading floor.<br/>Structural support failed and the market cratered.`;
+    body = `There's a bubble! echoes across the trading floor.<br/>Structural support failed and the market cratered.`;
     button = 'Search for Alpha';
   }
 
@@ -998,6 +1033,10 @@ function updateGame(delta) {
 
   const targetSpeed = config.baseSpeed + Math.min(state.distance * 1.6, config.maxSpeed - config.baseSpeed);
   state.currentSpeed += (targetSpeed - state.currentSpeed) * Math.min(1, delta * 0.8);
+
+  if (mobileGlideActive) {
+    player.jumpHoldTime = config.jumpHoldDuration;
+  }
 
   player.update(delta);
   resolvePlatformCollisions();
@@ -1047,6 +1086,16 @@ function updateGame(delta) {
     particle.update(delta);
     if (particle.life <= 0) {
       particles.splice(i, 1);
+    }
+  }
+
+  if (!state.crashTriggered && !state.winAchieved) {
+    const difficulty = getDifficultyScale();
+    const decayRate = config.confidenceDecayBase + Math.max(0, difficulty - 1) * config.confidenceDecayRamp;
+    state.health = Math.max(0, state.health - decayRate * delta);
+    if (state.health <= 0) {
+      triggerCrash('confidence');
+      return;
     }
   }
 
@@ -1147,18 +1196,115 @@ function intersects(a, b) {
 function startGame() {
   resetGame();
   hideMessage();
+  mobileGlideActive = false;
   state.running = true;
   state.gameOver = false;
   state.crashTriggered = false;
+  updateMobileControlState();
 }
 
 function handleResize() {
   const ratio = canvas.width / canvas.height;
-  const availableWidth = canvas.parentElement.clientWidth;
-  const newWidth = Math.min(availableWidth, 960);
-  const newHeight = newWidth / ratio;
+  const container = canvas.parentElement;
+  const availableWidth = container.clientWidth || config.width;
+  const availableHeight = container.clientHeight || window.innerHeight * 0.78;
+
+  let newWidth = Math.min(availableWidth, config.width);
+  let newHeight = newWidth / ratio;
+
+  const heightCap = Math.min(availableHeight, config.height);
+  if (newHeight > heightCap) {
+    newHeight = heightCap;
+    newWidth = newHeight * ratio;
+  }
+
   canvas.style.width = `${newWidth}px`;
   canvas.style.height = `${newHeight}px`;
+}
+
+function handleMobileJump() {
+  if (state.crashTriggered) {
+    return;
+  }
+  if (!state.running) {
+    startGame();
+    return;
+  }
+  player.jump();
+  player.jumpHoldTime = config.jumpHoldDuration;
+}
+
+function handleMobileJumpRelease() {
+  player.jumpHoldTime = 0;
+}
+
+function handleMobileGlideStart() {
+  if (!state.running || state.crashTriggered) {
+    return;
+  }
+  mobileGlideActive = true;
+  player.jumpHoldTime = config.jumpHoldDuration;
+}
+
+function handleMobileGlideEnd() {
+  mobileGlideActive = false;
+  player.jumpHoldTime = 0;
+}
+
+function handleMobileRestart() {
+  if (state.crashTriggered || state.winAchieved) {
+    startGame();
+  }
+}
+
+function initializeMobileControls() {
+  if (!isMobile || !mobileControls) {
+    return;
+  }
+
+  document.body.classList.add('is-mobile');
+  mobileControls.setAttribute('aria-hidden', 'false');
+
+  const pressEvent = window.PointerEvent ? 'pointerdown' : 'touchstart';
+  const releaseEvents = window.PointerEvent
+    ? ['pointerup', 'pointerleave', 'pointercancel']
+    : ['touchend', 'touchcancel'];
+
+  const bindPress = (element, onPress, onRelease) => {
+    if (!element) {
+      return;
+    }
+    element.addEventListener(pressEvent, event => {
+      event.preventDefault();
+      onPress();
+    }, { passive: false });
+
+    if (onRelease) {
+      releaseEvents.forEach(evt => {
+        element.addEventListener(evt, event => {
+          event.preventDefault();
+          onRelease();
+        }, { passive: false });
+      });
+    }
+  };
+
+  bindPress(mobileJumpButton, handleMobileJump, handleMobileJumpRelease);
+  bindPress(mobileGlideButton, handleMobileGlideStart, handleMobileGlideEnd);
+
+  if (mobileRestartButton) {
+    const restartHandler = event => {
+      event.preventDefault();
+      handleMobileRestart();
+    };
+
+    mobileRestartButton.addEventListener(pressEvent, restartHandler, { passive: false });
+    if (!window.PointerEvent) {
+      mobileRestartButton.addEventListener('click', restartHandler);
+    }
+  }
+
+  updateMobileControlState();
 }
 
 startButton.addEventListener('click', () => {
@@ -1214,6 +1360,7 @@ window.addEventListener('keyup', event => {
 });
 
 window.addEventListener('resize', handleResize);
+initializeMobileControls();
 handleResize();
 initializePlatforms();
 
