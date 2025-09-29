@@ -12,10 +12,6 @@ const messageTitle = document.getElementById('messageTitle');
 const messageBody = document.getElementById('messageBody');
 const bigShortOverlay = document.getElementById('bigShortOverlay');
 const recoverButton = document.getElementById('recoverButton');
-const mobileControls = document.getElementById('mobileControls');
-const mobileJumpButton = document.getElementById('mobileJump');
-const mobileGlideButton = document.getElementById('mobileGlide');
-const mobileRestartButton = document.getElementById('mobileRestart');
 const config = {
   width: canvas.width,
   height: canvas.height,
@@ -58,14 +54,6 @@ const state = {
     sinkhole: 8
   }
 };
-
-const isMobile = (() => {
-  const coarse = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
-  const ua = (navigator.userAgent || '').toLowerCase();
-  return coarse || /android|iphone|ipad|ipod|iemobile|windows phone/.test(ua);
-})();
-
-let mobileGlideActive = false;
 
 
 function getDifficultyScale() {
@@ -808,7 +796,6 @@ function resetGame() {
   state.inBigShort = false;
   state.winAchieved = false;
   state.health = config.healthMax;
-  mobileGlideActive = false;
   collectibles.length = 0;
   hazards.length = 0;
   floatingTexts.length = 0;
@@ -822,7 +809,6 @@ function resetGame() {
 }
 
 function updateHud() {
-
   hudCdo.textContent = state.cdoBank.toString();
   hudScore.textContent = `${Math.max(0, Math.floor(state.distance))} m`;
   hudHealth.textContent = `${Math.max(0, Math.round(state.health))}%`;
@@ -832,36 +818,6 @@ function updateHud() {
   hudRisk.style.color = risk.color;
   hudCdo.style.color = risk.color;
   hudHealth.style.color = getHealthColor();
-
-  updateMobileControlState();
-}
-
-function updateMobileControlState() {
-  if (!mobileControls) {
-    return;
-  }
-
-  const shouldShow = isMobile && (state.running || state.crashTriggered || state.winAchieved);
-  if (shouldShow) {
-    mobileControls.classList.add('is-visible');
-    mobileControls.setAttribute('aria-hidden', 'false');
-  } else {
-    mobileControls.classList.remove('is-visible');
-    mobileControls.setAttribute('aria-hidden', 'true');
-  }
-
-  if (!isMobile) {
-    return;
-  }
-
-  const canRestart = state.crashTriggered || state.winAchieved;
-  if (mobileRestartButton) {
-    if (canRestart) {
-      mobileRestartButton.removeAttribute('disabled');
-    } else {
-      mobileRestartButton.setAttribute('disabled', 'disabled');
-    }
-  }
 }
 
 function getRiskLevel() {
@@ -978,8 +934,6 @@ function triggerWin() {
   state.winAchieved = true;
   state.crashTriggered = false;
   state.inBigShort = false;
-  mobileGlideActive = false;
-  updateMobileControlState();
   bigShortOverlay.classList.remove('visible');
   const distance = Math.floor(state.distance);
   setTimeout(() => {
@@ -999,8 +953,6 @@ function triggerCrash(reason = 'liquidity') {
   state.gameOver = true;
   state.crashTriggered = true;
   state.inBigShort = false;
-  mobileGlideActive = false;
-  updateMobileControlState();
   bigShortOverlay.classList.remove('visible');
   const distance = Math.floor(state.distance);
   let title = '2008 Redux';
@@ -1047,10 +999,6 @@ function updateGame(delta) {
 
   const targetSpeed = config.baseSpeed + Math.min(state.distance * 1.6, config.maxSpeed - config.baseSpeed);
   state.currentSpeed += (targetSpeed - state.currentSpeed) * Math.min(1, delta * 0.8);
-
-  if (mobileGlideActive) {
-    player.jumpHoldTime = config.jumpHoldDuration;
-  }
 
   player.update(delta);
   resolvePlatformCollisions();
@@ -1210,115 +1158,31 @@ function intersects(a, b) {
 function startGame() {
   resetGame();
   hideMessage();
-  mobileGlideActive = false;
   state.running = true;
   state.gameOver = false;
   state.crashTriggered = false;
-  updateMobileControlState();
 }
 
 function handleResize() {
-  const ratio = canvas.width / canvas.height;
   const container = canvas.parentElement;
-  const availableWidth = container.clientWidth || config.width;
-  const availableHeight = container.clientHeight || window.innerHeight * 0.78;
-
-  let newWidth = Math.min(availableWidth, config.width);
-  let newHeight = newWidth / ratio;
-
-  const heightCap = Math.min(availableHeight, config.height);
-  if (newHeight > heightCap) {
-    newHeight = heightCap;
-    newWidth = newHeight * ratio;
-  }
-
-  canvas.style.width = `${newWidth}px`;
-  canvas.style.height = `${newHeight}px`;
-}
-
-function handleMobileJump() {
-  if (state.crashTriggered) {
-    return;
-  }
-  if (!state.running) {
-    startGame();
-    return;
-  }
-  player.jump();
-  player.jumpHoldTime = config.jumpHoldDuration;
-}
-
-function handleMobileJumpRelease() {
-  player.jumpHoldTime = 0;
-}
-
-function handleMobileGlideStart() {
-  if (!state.running || state.crashTriggered) {
-    return;
-  }
-  mobileGlideActive = true;
-  player.jumpHoldTime = config.jumpHoldDuration;
-}
-
-function handleMobileGlideEnd() {
-  mobileGlideActive = false;
-  player.jumpHoldTime = 0;
-}
-
-function handleMobileRestart() {
-  if (state.crashTriggered || state.winAchieved) {
-    startGame();
-  }
-}
-
-function initializeMobileControls() {
-  if (!isMobile || !mobileControls) {
+  if (!container) {
     return;
   }
 
-  document.body.classList.add('is-mobile');
-  mobileControls.setAttribute('aria-hidden', 'true');
+  const availableWidth = container.clientWidth || window.innerWidth;
+  const availableHeight = container.clientHeight || window.innerHeight;
+  const ratio = config.width / config.height;
 
-  const pressEvent = window.PointerEvent ? 'pointerdown' : 'touchstart';
-  const releaseEvents = window.PointerEvent
-    ? ['pointerup', 'pointerleave', 'pointercancel']
-    : ['touchend', 'touchcancel'];
+  let renderWidth = availableWidth;
+  let renderHeight = renderWidth / ratio;
 
-  const bindPress = (element, onPress, onRelease) => {
-    if (!element) {
-      return;
-    }
-    element.addEventListener(pressEvent, event => {
-      event.preventDefault();
-      onPress();
-    }, { passive: false });
-
-    if (onRelease) {
-      releaseEvents.forEach(evt => {
-        element.addEventListener(evt, event => {
-          event.preventDefault();
-          onRelease();
-        }, { passive: false });
-      });
-    }
-  };
-
-  bindPress(mobileJumpButton, handleMobileJump, handleMobileJumpRelease);
-  bindPress(mobileGlideButton, handleMobileGlideStart, handleMobileGlideEnd);
-
-  if (mobileRestartButton) {
-    const restartHandler = event => {
-      event.preventDefault();
-      handleMobileRestart();
-    };
-
-    mobileRestartButton.addEventListener(pressEvent, restartHandler, { passive: false });
-    if (!window.PointerEvent) {
-      mobileRestartButton.addEventListener('click', restartHandler);
-    }
+  if (renderHeight > availableHeight) {
+    renderHeight = availableHeight;
+    renderWidth = renderHeight * ratio;
   }
 
-  updateMobileControlState();
+  canvas.style.width = `${renderWidth}px`;
+  canvas.style.height = `${renderHeight}px`;
 }
 
 startButton.addEventListener('click', () => {
@@ -1374,7 +1238,6 @@ window.addEventListener('keyup', event => {
 });
 
 window.addEventListener('resize', handleResize);
-initializeMobileControls();
 handleResize();
 initializePlatforms();
 
