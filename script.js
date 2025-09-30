@@ -1517,7 +1517,7 @@ function updateGame(delta) {
   }
 
   state.distance += (state.currentSpeed * delta) / 4.5;
-  if (!state.winAchieved && state.distance >= 20000) {
+  if (!state.winAchieved && state.distance >= 12000) {
     triggerWin();
   }
   updateHud();
