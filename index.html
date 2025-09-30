@@ -32,19 +32,19 @@
         <canvas id="gameCanvas" width="1280" height="720" aria-label="Sonic collecting CDOs"></canvas>
         <div class="hud" aria-live="polite">
           <div class="hud-pane">
-            <span class="label">CDOs</span>
+            <span class="label">💰 CDOs</span>
             <span id="hudCdo" class="value">0</span>
           </div>
           <div class="hud-pane">
-            <span class="label">Distance</span>
+            <span class="label">📏 Distance</span>
             <span id="hudScore" class="value">0 m</span>
           </div>
           <div class="hud-pane">
-            <span class="label">Risk Level</span>
-            <span id="hudRisk" class="value">Stable</span>
+            <span class="label">⚡ Speed</span>
+            <span id="hudSpeed" class="value">Normal</span>
           </div>
           <div class="hud-pane">
-            <span class="label">Confidence</span>
+            <span class="label">❤️ Health</span>
             <span id="hudHealth" class="value">100%</span>
           </div>
         </div>
@@ -57,12 +57,39 @@
           </div>
         </div>
 
-        <div id="messagePanel" class="message-panel visible">
+        <div id="characterSelect" class="message-panel visible">
+          <div class="message-card character-select-card">
+            <h2>Select Your Character</h2>
+            <div class="character-grid">
+              <button class="character-btn" data-character="sonic">
+                <div class="character-icon">🦔</div>
+                <span>Sonic</span>
+                <small>Balanced</small>
+              </button>
+              <button class="character-btn" data-character="tails">
+                <div class="character-icon">🦊</div>
+                <span>Tails</span>
+                <small>High Jump</small>
+              </button>
+              <button class="character-btn" data-character="knuckles">
+                <div class="character-icon">💪</div>
+                <span>Knuckles</span>
+                <small>Extra Health</small>
+              </button>
+              <button class="character-btn" data-character="shadow">
+                <div class="character-icon">🌑</div>
+                <span>Shadow</span>
+                <small>Fast Speed</small>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="messagePanel" class="message-panel">
           <div class="message-card">
             <h2 id="messageTitle">Welcome to the Boom</h2>
             <p id="messageBody">
-              Sonic is now a Wall Street quant sprinting across stacked trading floors. Vault between layers,
-              hoover up glowing CDOs, and stay above water. If you collide with toxic assets and your CDO stash hits
+              Collect golden CDO rings and Big Short power-ups! Avoid toxic assets. If your CDOs or confidence hit
               zero, the 2008 crash returns. Dive too deep and you might relive <em>The Big Short</em>. Survive 20,000 market
               meters and the bubble deflates without a crash.
             </p>
